@@ -1,0 +1,73 @@
+import streamlit as st
+
+    # =========================================================
+    # HIER KANNST DU DEINE DATEN ANPASSEN
+    # =========================================================
+    
+    # Hier trägst du später deine echten Städte ein.
+laender_daten = {
+        "1": {
+            "name": "Deutschland",
+            "staedte": [
+                "Jübeck", "Norden", "Verden", "Stade", "Bielefeld", 
+                "Köln", "Bad Münstereifel", "Heuchelheim", "Leipzig", "Frankfurt", 
+                "Würzburg", "Amberg", "Mannheim", "Geislingen", "Mühldorf", 
+                "München", "Friedrichshafen"
+            ]
+        },
+        "2": {
+            "name": "Österreich",
+            "staedte": [
+                "Wien", "Neuzeug", "Kotschach - Mauthen"
+            ]
+        },
+        "3": {
+            "name": "Niederlande",
+            "staedte": [
+                "Didam"
+            ]
+        },
+        "4": {
+            "name": "Liechtenstein",
+            "staedte": [
+                "Schaan"
+            ]
+        }
+    }
+
+    # Das ist dein frei wählbarer Text, der am Ende angezeigt wird.
+    # Du kannst ihn hier im Code jederzeit verändern.
+    mein_wunschtext = "Hier steht dein ganz persönlicher Text, den du frei wählen und anpassen kannst!"
+
+    # =========================================================
+    # AB HIER STARTET DAS EIGENTLICHE PROGRAMM
+    # =========================================================
+    
+    # Titel der App auf der Webseite
+st.title("Mein Auswahl-Menü")
+
+# 1. Länder-Auswahl als Dropdown (Streamlit liest automatisch die Ländernamen aus deiner Struktur)
+land_namen = [daten["name"] for daten in laender_daten.values()]
+gewaehltes_land = st.selectbox("Bitte wähle ein Land aus:", land_namen)
+
+# 2. Den passenden Schlüssel (1, 2, 3 oder 4) für das gewählte Land finden
+land_schluessel = None
+for schluessel, daten in laender_daten.items():
+    if daten["name"] == gewaehltes_land:
+        land_schluessel = schluessel
+        break
+
+# 3. Städte-Auswahl basierend auf dem gewählten Land anzeigen
+if land_schluessel:
+    staedte_liste = laender_daten[land_schluessel]["staedte"]
+    gewaehlte_stadt = st.selectbox("Bitte wähle eine Stadt aus:", staedte_liste)
+    
+    # Bestätigungs-Button auf der Webseite
+    if st.button("Auswahl bestätigen"):
+        # Das Ergebnis schön anzeigen
+        st.success("Auswahl erfolgreich!")
+        st.write(f"**Gewähltes Land:** {gewaehltes_land}")
+        st.write(f"**Gewählte Stadt:** {gewaehlte_stadt}")
+        
+        # Dein persönlicher Wunschtext in einer Infobox
+        st.info(mein_wunschtext)
