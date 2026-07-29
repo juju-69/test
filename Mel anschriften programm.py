@@ -5,7 +5,7 @@ import streamlit as st
     # =========================================================
     
     # Hier trägst du später deine echten Städte ein.
-    laender_daten = {
+laender_daten = {
         "1": {
             "name": "Deutschland",
             "staedte": [
