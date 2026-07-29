@@ -37,7 +37,6 @@ laender_daten = {
 
     # Das ist dein frei wählbarer Text, der am Ende angezeigt wird.
     # Du kannst ihn hier im Code jederzeit verändern.
-    mein_wunschtext = "Hier steht dein ganz persönlicher Text, den du frei wählen und anpassen kannst!"
 
     # =========================================================
     # AB HIER STARTET DAS EIGENTLICHE PROGRAMM
@@ -70,4 +69,4 @@ if land_schluessel:
         st.write(f"**Gewählte Stadt:** {gewaehlte_stadt}")
         
         # Dein persönlicher Wunschtext in einer Infobox
-        st.info(mein_wunschtext)
+       
