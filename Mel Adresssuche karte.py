@@ -1,0 +1,107 @@
+import sys
+import subprocess
+
+# --- DER SELBSTBEDIENUNGS-TRICK ---
+# Der Internet-Computer prüft, ob er die Werkzeuge hat. Wenn nicht, lädt er sie selbst herunter!
+try:
+    import geopy
+    import pandas
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "geopy", "pandas"])
+# ----------------------------------
+
+import streamlit as st
+import pandas as pd
+import time
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
+
+# Seiteneinstellungen für den Browser-Tab
+st.set_page_config(page_title="Umkreissuche", page_icon="📍", layout="centered")
+
+st.title("📌 Die nächste Adresse finden")
+st.write("Gib einen Ort ein, um die geografisch nächste Adresse aus der Datenbank zu ermitteln.")
+
+# 1. Deine festen Adressen hinterlegen
+FESTE_ADRESSEN = [
+    "Marienplatz 1, 80331 München",
+    "Altstadt 20, 84028 Landshut",
+    "Domplatz 1, 93047 Regensburg"
+]
+
+# WICHTIG: Streamlit lädt den Code bei jeder Eingabe neu. 
+# Mit @st.cache_data sorgen wir dafür, dass die festen Adressen nur EINMALIG geladen werden.
+@st.cache_data
+def lade_feste_koordinaten():
+    geolocator = Nominatim(user_agent="meine_web_umkreissuche_2026")
+    datenbank = []
+    for adresse in FESTE_ADRESSEN:
+        try:
+            location = geolocator.geocode(adresse)
+            if location:
+                datenbank.append({
+                    "adresse": adresse,
+                    "lat": location.latitude,
+                    "lon": location.longitude
+                })
+                time.sleep(1) # API-Schonung
+        except Exception:
+            pass
+    return datenbank
+
+feste_daten = lade_feste_koordinaten()
+
+# 2. Das Eingabefeld auf der Webseite
+suchort = st.text_input("Dein aktueller Standort (Adresse oder Stadt):", placeholder="z.B. Kumhausen")
+
+if suchort:
+    geolocator = Nominatim(user_agent="meine_web_umkreissuche_2026")
+    
+    with st.spinner("Suche Ort und berechne Distanzen..."):
+        suchort_location = geolocator.geocode(suchort)
+        
+        if not suchort_location:
+            st.error("❌ Dieser Ort wurde nicht gefunden. Bitte Schreibweise prüfen!")
+        else:
+            s_lat = suchort_location.latitude
+            s_lon = suchort_location.longitude
+            
+            st.info(f"**Erkannter Ort:** {suchort_location.address}")
+            
+            # Distanzen berechnen
+            ergebnisse = []
+            for ziel in feste_daten:
+                distanz = geodesic((s_lat, s_lon), (ziel["lat"], ziel["lon"])).kilometers
+                ergebnisse.append({
+                    "adresse": ziel["adresse"],
+                    "distanz": distanz,
+                    "lat": ziel["lat"],
+                    "lon": ziel["lon"]
+                })
+            
+            # Sortieren nach kleinster Distanz
+            ergebnisse.sort(key=lambda x: x["distanz"])
+            naechste = ergebnisse[0]
+            
+            # Ergebnis schick anzeigen
+            st.success("### 🎉 Ergebnis:")
+            st.metric(label="Nächste Adresse", value=naechste["adresse"])
+            st.metric(label="Entfernung (Luftlinie)", value=f"{naechste['distanz']:.2f} km")
+            
+            # 3. Kartendaten vorbereiten
+            # Wir packen alle Punkte (Suchort + feste Adressen) in eine Liste für die Karte
+            karten_punkte = []
+            
+            # Eigener Standort
+            karten_punkte.append({"lat": s_lat, "lon": s_lon})
+            
+            # Alle festen Adressen hinzufügen
+            for e in ergebnisse:
+                karten_punkte.append({"lat": e["lat"], "lon": e["lon"]})
+            
+            # In ein Pandas Dataframe umwandeln, das Streamlit für Karten braucht
+            df_karte = pd.DataFrame(karten_punkte)
+            
+            # Die interaktive Karte auf der Webseite anzeigen
+            st.subheader("🗺️ Geografische Übersicht")
+            st.map(df_karte)
