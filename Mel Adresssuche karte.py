@@ -1,15 +1,3 @@
-import sys
-import subprocess
-
-# --- DER SELBSTBEDIENUNGS-TRICK ---
-# Der Internet-Computer prüft, ob er die Werkzeuge hat. Wenn nicht, lädt er sie selbst herunter!
-try:
-    import geopy
-    import pandas
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "geopy", "pandas"])
-# ----------------------------------
-
 import streamlit as st
 import pandas as pd
 import time
